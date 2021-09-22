@@ -30,6 +30,35 @@ hist(x, probability = T)
 ```
 
 ## Problem 2
+### Question
+Consider the probability density function $f_X(x)=2x$ for random variable $X$ defined on $x \in [0,1]$. Two candidate methods, Algorithm 1 and Algorithm 2, to simulate $X$ are given below
+
+Algorithm 1
+
+1. Simulate $y^*\sim Unif(0,2)$
+2. Simulate $u^*\sim Unif(0,1)$
+3. if $y^*\leq2u^*$, accept $u^*$ as from $f_X(x)$, else reject and go to 1
+
+Algorithm 2
+
+1. Simulate $y^*\sim Unif(0,2)$
+2. Simulate $w^*\sim Unif(\frac{y^*}{2},1)$
+3. Accept **all** from $f_X(x)$
+
+Assess whether Algorithm 1 and Algorithm 2 produce samples from the target distribution $f_X(x)$, supporting your answer clearly with a mathematical argument for each case.
+
+### Solution
+Both algorithms will produce samples from the target distribution. The difference is that algorithm 1 is less efficient than algorithm 2.
+
+In algorithm 1, $u$ is a random variable that spans the entire set of the pdf $f_X(x)$. It's corresponding density has a range of $[0,2]$. Using this range as the simulation for $y*$, we can simulate random points anywhere in the box of $x\in[0,1$ and $y\in[0,2]$. Again the criterion is that a threshold must identify the maximum possible density for each corresponding point. The maximum value is identified with the pdf but substituting in the point(s) from the random variable $u$.
+
+Algorithm 2, uses a similar method, but instead of drawing a rectangular box around the pdf, it transforms the box into a different shape---a triangle---making it more efficient. This is made possible because
+
+
+$$0 \leq w \leq1 ~~w\in[\frac{y^*}{2},1]$$
+
+
+
 
 
 
