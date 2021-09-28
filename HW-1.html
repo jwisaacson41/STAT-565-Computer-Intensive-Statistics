@@ -9,6 +9,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Ebenzer Emos" />
+<meta name="author" content="Holly Wood" />
 <meta name="author" content="Jon Isaacson" />
 
 
@@ -189,6 +191,8 @@ summary {
 
 
 <h1 class="title toc-ignore">Assignment 1</h1>
+<h4 class="author">Ebenzer Emos</h4>
+<h4 class="author">Holly Wood</h4>
 <h4 class="author">Jon Isaacson</h4>
 <h4 class="date">10/1/2021</h4>
 
@@ -206,22 +210,28 @@ summary {
 <div id="solution" class="section level3">
 <h3>Solution</h3>
 <ol style="list-style-type: decimal">
-<li>Simulate <span class="math inline">\(u \sim U(0,1)\)</span> 10 times</li>
-<li>Compare the uniform random variable against <span class="math inline">\(\theta\)</span> <span class="math display">\[
-\left\{\begin{array}{cc}
-u\leq\theta &amp; y=1\\
-u&gt;\theta &amp; y=0
-\end{array}\right\}
-\]</span></li>
-<li>Calculate <span class="math inline">\(y^*=\sum_{i=1}^{10}y_i\)</span></li>
-<li>Accept all <span class="math inline">\(y^*\)</span> as from <span class="math inline">\(f(x)\)</span></li>
+<li>Simulate <span class="math inline">\(u_i \sim U(0,1)\)</span> <span class="math inline">\(n\)</span> times.</li>
+<li>Compare each uniform random variable draw against <span class="math inline">\(\theta\)</span>.</li>
 </ol>
-<pre class="r"><code>u&lt;-runif(10)
-theta&lt;-0.3
-y&lt;-ifelse(u&lt;=theta, 1, 0)
-y.star&lt;-sum(y)
-y.star</code></pre>
-<pre><code>## [1] 6</code></pre>
+<ul>
+<li>If <span class="math inline">\(u_i\leq\theta\)</span> then <span class="math inline">\(y_i=1\)</span></li>
+<li>Else <span class="math inline">\(y_i=0\)</span></li>
+</ul>
+<p><span class="math display">\[
+y_i=
+\begin{cases}
+1 &amp; u_i\leq\theta \\
+0 &amp; u_i&gt;\theta
+\end{cases}
+\]</span> 3. Calculate <span class="math inline">\(y^*=\sum_{i=1}^{10}y_i\)</span> 4. Accept all <span class="math inline">\(y^*\)</span> as from <span class="math inline">\(f(x)\)</span>. Discard all <span class="math inline">\(u_i\)</span> and return to step 1.</p>
+<pre class="r"><code>u&lt;-runif(10); u</code></pre>
+<pre><code>##  [1] 0.22391108 0.37644997 0.52872025 0.96723141 0.15405485 0.01877454
+##  [7] 0.74083995 0.45243194 0.08051837 0.38955054</code></pre>
+<pre class="r"><code>theta&lt;-0.3
+y&lt;-ifelse(u&lt;=theta, 1, 0); y</code></pre>
+<pre><code>##  [1] 1 0 0 0 1 1 0 0 1 0</code></pre>
+<pre class="r"><code>y.star&lt;-sum(y); y.star</code></pre>
+<pre><code>## [1] 4</code></pre>
 </div>
 </div>
 <div id="problem-2" class="section level2">
@@ -265,18 +275,28 @@ y.star</code></pre>
 </div>
 <div id="problem-4" class="section level2">
 <h2>Problem 4</h2>
-<div id="question-3" class="section level3">
-<h3>Question</h3>
-<p>Assume X has probability density function <span class="math inline">\(f_X(x)\)</span>; with <span class="math display">\[f_X(x)\propto K(e^{-x^2/2})\mathbf{I}_{\{[4,\infty)}}\]</span> ### Solution</p>
+<p>Assume X has probability density function <span class="math inline">\(f_X(x)\)</span>; with</p>
+<p><span class="math display">\[f_X(x)\propto K(e^{-x^2/2})\mathbf{I}_{\{[4,\infty)\}}\]</span> where <span class="math inline">\(K\)</span> is a constant and <span class="math inline">\(\mathbf{I}_{A}\)</span> is the indicator function that takes the value <span class="math inline">\(1\)</span> and <span class="math inline">\(A\)</span> and <span class="math inline">\(0\)</span> otherwise. In other words the support of <span class="math inline">\(f_X(x)\)</span> is <span class="math inline">\(x\in[4,\infty)\)</span>.</p>
+<div id="question-a" class="section level3">
+<h3>Question A</h3>
+<p>Write an algorithm to simulate <span class="math inline">\(f_X(x)\)</span> using a <strong>rejection method</strong>.</p>
+</div>
+<div id="solution-a" class="section level3">
+<h3>Solution A</h3>
+</div>
+<div id="question-b" class="section level3">
+<h3>Question B</h3>
+<p>For your choice of proposal distribution, find the optimal value of parameter (of the proposal distribution) which maximizes the probability of acceptance.</p>
+</div>
+<div id="solution-b" class="section level3">
+<h3>Solution B</h3>
 </div>
 </div>
 <div id="problem-5" class="section level2">
 <h2>Problem 5</h2>
-<div id="question-4" class="section level3">
+<div id="question-3" class="section level3">
 <h3>Question</h3>
-</div>
-<div id="solution-3" class="section level3">
-<h3>Solution</h3>
+<p>Show whether it is possible to use the rejection algorithm to simulate from the target distribution of a random variable whose natural logarithm is normally distributed, using a normal distribution as a proposal distribution. ### Solution</p>
 </div>
 </div>
 </div>
@@ -284,37 +304,38 @@ y.star</code></pre>
 <h1>Part II Practice</h1>
 <div id="problem-6" class="section level2">
 <h2>Problem 6</h2>
-<p>For purposes of this problem you can use built-in random variable generating functions in R. For example, you can use rnorm to simulate normal random variables. In this problem we will computationally verify that in the context of linear regression we can obtain the Ordinary Least Squares estimates for the regression coefficients using a matrix decomposition method. We let <span class="math display">\[y_i=\beta_0+\beta_1x_{1i}+\beta_2x_{2i}+\epsilon_i,~~~i=1,2,...,n\]</span> where <span class="math inline">\(y_i\)</span> is the ith response at the ith predictor variables for <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> and <span class="math inline">\(\epsilon_i\)</span> are errors satisfying the Gauss-Markov conditions,</p>
+<p>For purposes of this problem you can use built-in random variable generating functions in R. For example, you can use rnorm to simulate normal random variables. In this problem we will computationally verify that in the context of linear regression we can obtain the Ordinary Least Squares estimates for the regression coefficients using a matrix decomposition method. We let <span class="math display">\[y_i=\beta_0+\beta_1x_{1i}+\beta_2x_{2i}+\epsilon_i,~~~i=1,2,...,n\]</span> where <span class="math inline">\(y_i\)</span> is the ith response at the ith predictor variables for <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> and <span class="math inline">\(\epsilon_i\)</span> are errors satisfying the Gauss-Markov conditions:</p>
 <ul>
 <li><span class="math inline">\(E(\epsilon_i)=0\)</span>, <span class="math inline">\(Var(\epsilon_i=0)\)</span>, <span class="math inline">\(\forall i\)</span></li>
 <li><span class="math inline">\(Cov(\epsilon_i,\epsilon_j)\)</span> <span class="math inline">\(\forall (i,j)\)</span></li>
 </ul>
-<div id="question-a" class="section level3">
+<div id="question-a-1" class="section level3">
 <h3>Question A</h3>
 <p>Build a linear regression model and simulate a data set to work on. Let <span class="math inline">\(n = 100,~\beta_1 = 3,~\beta_2 = 2\)</span>. In a classical linear regression model, the predictors <span class="math inline">\(x_{1i}\)</span> and <span class="math inline">\(x_{2i}\)</span> are fixed and for convenience we will fix these values by simulating them from <span class="math inline">\(Unif(0 10)\)</span> independently, and also simulate <span class="math inline">\(\epsilon_i\sim Nor(\mu=0,\sigma=0.5)\)</span> for $i=1,2,…,n $ Given values of predictors, regression coefficients, and errors, calculate the values of response variable <span class="math inline">\(y_i\)</span>. We have simulated a data set from a linear regression model and know the true model since we set the values of parameters.</p>
 </div>
-<div id="solution-a" class="section level3">
+<div id="solution-a-1" class="section level3">
 <h3>Solution A</h3>
 <pre class="r"><code>set.seed(123)
 source(file = &quot;Function - Uniform Random Data Generator.R&quot;)
-data&lt;-unif.datagenerator(100, 2, 0, 10)
+data&lt;-unif.datagenerator(100, 2, 0, 10, x0=T)
 data.df&lt;-data.frame(data)
+colnames(data.df)&lt;-paste0(&quot;X&quot;,0:(ncol(data.df)-1))
 data.df$Epsilon&lt;-rnorm(100, 0, 0.5)
 data.df$Y&lt;-data.df$X1*3+data.df$X2*2+data.df$Epsilon
 head(data.df)</code></pre>
-<pre><code>##         X1       X2     Epsilon        Y
-## 1 2.875775 5.999890 -0.35520328 20.27190
-## 2 7.883051 3.328235  0.12844185 30.43407
-## 3 4.089769 4.886130 -0.12334594 21.91822
-## 4 8.830174 9.544738 -0.17377130 45.40623
-## 5 9.404673 4.829024 -0.47580928 37.39626
-## 6 0.455565 8.903502 -0.02251386 19.15119</code></pre>
+<pre><code>##   X0       X1       X2     Epsilon        Y
+## 1  1 2.875775 5.999890 -0.35520328 20.27190
+## 2  1 7.883051 3.328235  0.12844185 30.43407
+## 3  1 4.089769 4.886130 -0.12334594 21.91822
+## 4  1 8.830174 9.544738 -0.17377130 45.40623
+## 5  1 9.404673 4.829024 -0.47580928 37.39626
+## 6  1 0.455565 8.903502 -0.02251386 19.15119</code></pre>
 </div>
 <div id="problem-b" class="section level3">
 <h3>Problem B</h3>
 <p>Run <code>lm</code> function in R (see <code>?lm</code> in R) to perform a linear regression analysis (predictors <span class="math inline">\(x_1, x_2\)</span> and response <span class="math inline">\(y\)</span>) and record <span class="math inline">\(\hat\beta\)</span> estimates from the R output.</p>
 </div>
-<div id="solution-b" class="section level3">
+<div id="solution-b-1" class="section level3">
 <h3>Solution B</h3>
 <pre class="r"><code>l.model&lt;-lm(data=data.df, Y~X1+X2)
 l.model$coefficients</code></pre>
@@ -327,7 +348,30 @@ l.model$coefficients</code></pre>
 </div>
 <div id="solution-c" class="section level3">
 <h3>Solution C</h3>
-<pre class="r"><code># svd.lm.coefficients&lt;-function(data){}</code></pre>
+<p>Here, we make use of the <code>svd</code> function in R. This function generates a list of 3 matrices that we use to estimate the coefficients in the linear model.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbf{X}\beta &amp;= y \\
+\mathbf{UDV}&#39;&amp;=y \\
+\underbrace{\hat\beta}_{(3\times1)} &amp;=\underbrace{\mathbf{V}}_{(3\times3)} \underbrace{\mathbf{D}^{-1}}_{(3\times3)} \underbrace{\mathbf{U}&#39;}_{(3\times100)} \underbrace{y}_{(100\times1)}
+\end{aligned}
+\]</span></p>
+<pre class="r"><code>lm.svd&lt;-function(Design.Matrix, Response){
+  # Parameters
+  #   - Design Matrix (matrix): a matrix of all the data including X_0
+  #   - Response: a vector of the response variable
+  # Output
+  #   - Coefficients
+  svd.mtx&lt;-svd(Design.Matrix)
+  coef&lt;-svd.mtx$v %*% solve(diag(svd.mtx$d)) %*% t(svd.mtx$u) %*% Response
+  coef.t&lt;-t(coef)
+  colnames(coef.t)&lt;-paste0(&quot;B&quot;, 0:(nrow(coef)-1))
+  return(coef.t)
+}
+
+lm.svd(data, data.df$Y)</code></pre>
+<pre><code>##               B0       B1       B2
+## [1,] -0.07039691 3.004863 1.998518</code></pre>
 </div>
 <div id="question-d" class="section level3">
 <h3>Question D</h3>
@@ -335,23 +379,30 @@ l.model$coefficients</code></pre>
 </div>
 <div id="solution-d" class="section level3">
 <h3>Solution D</h3>
+<p>We can see from the table below that there is almost no difference between the linear model function and the singular value decomposition function when it comes to linear modeling.</p>
+<pre><code>##             Lm Function SVD Function    Difference
+## (Intercept) -0.07039691  -0.07039691  1.633416e-14
+## X1           3.00486299   3.00486299  4.440892e-16
+## X2           1.99851789   1.99851789 -2.220446e-15</code></pre>
 </div>
 </div>
 <div id="problem-7" class="section level2">
 <h2>Problem 7</h2>
-<p><em>Urn models</em> are probabilistic models that are basis for many real life discrete stochastic models. An urn model formulates a discrete data generating mechanism using various well-defined sampling schemes of balls from an urn. Consider the following urn model: There are <span class="math inline">\(\alpha_W\)</span> white balls, <span class="math inline">\(\alpha_R\)</span> red balls, and <span class="math inline">\(\alpha_B\)</span> blue balls in a well-mixed urn and no other balls. Draw a ball by simple random sampling. Observe its color and put it back to the urn together with another (new) ball of the same color. For example, if a red ball is drawn, then return that ball and an additional red ball to the urn before the second draw. Continue sampling this way and stop when n draws are made. This urn scheme is known as multivariate Pólya urn (basic Pólya urn has only two colored balls). We are interested in finding a method to simulate the random variable that captures the number of balls of each color in n draws. For example if <span class="math inline">\(n = 10\)</span>, a realization of the random variable could be <span class="math inline">\((n_W = 4; n_R = 0; n_B = 6)\)</span>, <span class="math inline">\((n = n_W + n_R + n_B)\)</span> Note that we can simulate this process directly by sampling balls from an urn as described. However, this would be computationally inefficient if <span class="math inline">\(n\)</span> is large, we want to simulate samples for a number of <span class="math inline">\(\alpha = (\alpha_W; \alpha_R; \alpha_B)\)</span> vectors, or even generalize the model to non integer <span class="math inline">\(\alpha\)</span> (see part (b) below). An easier way is to find probability distributions associated with the described stochastic process and sample those distributions.</p>
-<div id="question-a-1" class="section level3">
+<p><em>Urn models</em> are probabilistic models that are basis for many real life discrete stochastic models. An urn model formulates a discrete data generating mechanism using various well-defined sampling schemes of balls from an urn.</p>
+<p>Consider the following urn model: There are <span class="math inline">\(\alpha_W\)</span> white balls, <span class="math inline">\(\alpha_R\)</span> red balls, and <span class="math inline">\(\alpha_B\)</span> blue balls in a well-mixed urn and no other balls. Draw a ball by simple random sampling. Observe its color and put it back to the urn together with another (new) ball of the same color. For example, if a red ball is drawn, then return that ball and an additional red ball to the urn before the second draw. Continue sampling this way and stop when n draws are made. This urn scheme is known as multivariate Pólya urn (basic Pólya urn has only two colored balls).</p>
+<p>We are interested in finding a method to simulate the random variable that captures the number of balls of each color in n draws. For example if <span class="math inline">\(n = 10\)</span>, a realization of the random variable could be <span class="math inline">\((n_W = 4; n_R = 0; n_B = 6)\)</span>, <span class="math inline">\((n = n_W + n_R + n_B)\)</span> Note that we can simulate this process directly by sampling balls from an urn as described. However, this would be computationally inefficient if <span class="math inline">\(n\)</span> is large, we want to simulate samples for a number of <span class="math inline">\(\alpha = (\alpha_W; \alpha_R; \alpha_B)\)</span> vectors, or even generalize the model to non integer <span class="math inline">\(\alpha\)</span> (see part (b) below). An easier way is to find probability distributions associated with the described stochastic process and sample those distributions.</p>
+<div id="question-a-2" class="section level3">
 <h3>Question A</h3>
-<p>Write an R function that takes arguments as <span class="math inline">\((\alpha_W, \alpha_R, \alpha_B), n\)</span>, and returns a sample from this urn model using the random variable generation methods that we learned in class and any extrensions you can devise. As an example to illustrate that your program works use $ = (_W = 1, _R = 5 _B = 2)$ and <span class="math inline">\(n = 100\)</span>.</p>
+<p>Write an R function that takes arguments as <span class="math inline">\((\alpha_W, \alpha_R, \alpha_B), n\)</span>, and returns a sample from this urn model using the random variable generation methods that we learned in class and any extrensions you can devise. As an example to illustrate that your program works use <span class="math inline">\(\alpha = (\alpha_W = 1, \alpha_R = 5 \alpha_B = 2)\)</span> and <span class="math inline">\(n = 100\)</span>.</p>
 </div>
-<div id="solution-a-1" class="section level3">
+<div id="solution-a-2" class="section level3">
 <h3>Solution A</h3>
 </div>
-<div id="question-b" class="section level3">
+<div id="question-b-1" class="section level3">
 <h3>Question B</h3>
 <p>Generalize your function to a model with <span class="math inline">\(k\)</span> types of balls, where the input is a vector <span class="math inline">\(\alpha = (\alpha_1, \alpha_2,..., \alpha_k)\)</span> (and <span class="math inline">\(n\)</span>), where <span class="math inline">\(\alpha_i \in \mathbb{R}\)</span>; which means that <span class="math inline">\(\alpha_i &gt; 0\)</span> does not need to be integer.</p>
 </div>
-<div id="solution-b-1" class="section level3">
+<div id="solution-b-2" class="section level3">
 <h3>Solution B</h3>
 </div>
 </div>
