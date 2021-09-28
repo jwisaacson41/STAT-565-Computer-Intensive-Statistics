@@ -1,6 +1,9 @@
 ---
 title: "Assignment 1"
-author: "Jon Isaacson"
+author:
+  - "Ebenzer Emos"
+  - "Holly Wood"
+  - "Jon Isaacson"
 date: "10/1/2021"
 output: html_document
 ---
@@ -17,23 +20,27 @@ Let $X$ follow a binomial distribution with number of trials $n = 10$ and probab
 
 ### Solution
 
-1. Simulate $u \sim U(0,1)$ 10 times
-2. Compare the uniform random variable against $\theta$
+1. Simulate $u_i \sim U(0,1)$ $n$ times.
+2. Compare each uniform random variable draw against $\theta$.
+
+  - If $u_i\leq\theta$ then $y_i=1$
+  - Else $y_i=0$
+
 $$
-\left\{\begin{array}{cc}
-u\leq\theta & y=1\\
-u>\theta & y=0
-\end{array}\right\}
+y_i=
+\begin{cases}
+1 & u_i\leq\theta \\
+0 & u_i>\theta
+\end{cases}
 $$
 3. Calculate $y^*=\sum_{i=1}^{10}y_i$
-4. Accept all $y^*$ as from $f(x)$
+4. Accept all $y^*$ as from $f(x)$. Discard all $u_i$ and return to step 1.
 
 ``` {r }
-u<-runif(10)
+u<-runif(10); u
 theta<-0.3
-y<-ifelse(u<=theta, 1, 0)
-y.star<-sum(y)
-y.star
+y<-ifelse(u<=theta, 1, 0); y
+y.star<-sum(y); y.star
 ```
 
 ## Problem 2
@@ -102,7 +109,7 @@ Show whether it is possible to use the rejection algorithm to simulate from the 
 ## Problem 6
 For purposes of this problem you can use built-in random variable generating functions in R. For example, you can use rnorm to simulate normal random variables. In this problem we will computationally verify that in the context of linear regression we can obtain the Ordinary Least Squares estimates for the regression coefficients using a matrix decomposition method. We let
 $$y_i=\beta_0+\beta_1x_{1i}+\beta_2x_{2i}+\epsilon_i,~~~i=1,2,...,n$$
-where $y_i$ is the ith response at the ith predictor variables for $x_1$ and $x_2$ and $\epsilon_i$ are errors satisfying the Gauss-Markov conditions,
+where $y_i$ is the ith response at the ith predictor variables for $x_1$ and $x_2$ and $\epsilon_i$ are errors satisfying the Gauss-Markov conditions:
 
 * $E(\epsilon_i)=0$, $Var(\epsilon_i=0)$, $\forall i$
 * $Cov(\epsilon_i,\epsilon_j)$ $\forall (i,j)$
@@ -114,8 +121,9 @@ Build a linear regression model and simulate a data set to work on. Let $n = 100
 ```{r}
 set.seed(123)
 source(file = "Function - Uniform Random Data Generator.R")
-data<-unif.datagenerator(100, 2, 0, 10)
+data<-unif.datagenerator(100, 2, 0, 10, x0=T)
 data.df<-data.frame(data)
+colnames(data.df)<-paste0("X",0:(ncol(data.df)-1))
 data.df$Epsilon<-rnorm(100, 0, 0.5)
 data.df$Y<-data.df$X1*3+data.df$X2*2+data.df$Epsilon
 head(data.df)
@@ -134,26 +142,61 @@ l.model$coefficients
 Write an R function that takes this data set as input and outputs $\hat\beta$ using svd function in R for Singular Value Decomposition.
 
 ### Solution C
+Here, we make use of the `svd` function in R. This function generates a list of 3 matrices that we use to estimate the coefficients in the linear model.
+
+$$
+\begin{aligned}
+\mathbf{X}\beta &= y \\
+\mathbf{UDV}'&=y \\
+\underbrace{\hat\beta}_{(3\times1)} &=\underbrace{\mathbf{V}}_{(3\times3)} \underbrace{\mathbf{D}^{-1}}_{(3\times3)} \underbrace{\mathbf{U}'}_{(3\times100)} \underbrace{y}_{(100\times1)}
+\end{aligned}
+$$
+
 ```{r}
-# svd.lm.coefficients<-function(data){}
+lm.svd<-function(Design.Matrix, Response){
+  # Parameters
+  #   - Design Matrix (matrix): a matrix of all the data including X_0
+  #   - Response: a vector of the response variable
+  # Output
+  #   - Coefficients
+  svd.mtx<-svd(Design.Matrix)
+  coef<-svd.mtx$v %*% solve(diag(svd.mtx$d)) %*% t(svd.mtx$u) %*% Response
+  coef.t<-t(coef)
+  colnames(coef.t)<-paste0("B", 0:(nrow(coef)-1))
+  return(coef.t)
+}
+
+lm.svd(data, data.df$Y)
 ```
 
 ### Question D
 Compare estimates $\hat\beta$ from part (b) and (c).
 
 ### Solution D
+We can see from the table below that there is almost no difference between the linear model function and the singular value decomposition function when it comes to linear modeling.
+
+```{r, echo=FALSE}
+coef.comparison.df<-data.frame(lm.function = l.model$coefficients)
+coef.comparison.df$svd<-t(lm.svd(data, data.df$Y))
+coef.comparison.df$diff<-coef.comparison.df$lm.function - coef.comparison.df$svd
+colnames(coef.comparison.df)<-c("Lm Function", "SVD Function","Difference")
+coef.comparison.df
+```
+
 
 ## Problem 7
 *Urn models* are probabilistic models that are basis for many real life discrete stochastic models. An urn model formulates a discrete data generating mechanism using various well-defined sampling schemes of balls from an urn.
-  Consider the following urn model: There are $\alpha_W$ white balls, $\alpha_R$ red balls, and $\alpha_B$ blue balls in a well-mixed urn and no other balls. Draw a ball by simple random sampling. Observe its color and put it back to the urn together with another (new) ball of the same color. For example, if a red ball is drawn, then return that ball and an additional red ball to the urn before the second draw. Continue sampling this way and stop when n draws are made. This urn scheme is known as multivariate Pólya urn (basic Pólya urn has only two colored balls).
-  We are interested in finding a method to simulate the random variable that captures
+
+Consider the following urn model: There are $\alpha_W$ white balls, $\alpha_R$ red balls, and $\alpha_B$ blue balls in a well-mixed urn and no other balls. Draw a ball by simple random sampling. Observe its color and put it back to the urn together with another (new) ball of the same color. For example, if a red ball is drawn, then return that ball and an additional red ball to the urn before the second draw. Continue sampling this way and stop when n draws are made. This urn scheme is known as multivariate Pólya urn (basic Pólya urn has only two colored balls).
+  
+We are interested in finding a method to simulate the random variable that captures
 the number of balls of each color in n draws. For example if $n = 10$, a
 realization of the random variable could be $(n_W = 4; n_R = 0; n_B = 6)$, $(n = n_W + n_R + n_B)$ Note that we can simulate this process directly by sampling balls
 from an urn as described. However, this would be computationally inefficient if $n$
 is large, we want to simulate samples for a number of $\alpha = (\alpha_W; \alpha_R; \alpha_B)$ vectors, or even generalize the model to non integer $\alpha$ (see part (b) below). An easier way is to find probability distributions associated with the described stochastic process and sample those distributions. 
 
 ### Question A
-Write an R function that takes arguments as $(\alpha_W, \alpha_R, \alpha_B), n$, and returns a sample from this urn model using the random variable generation methods that we learned in class and any extrensions you can devise. As an example to illustrate that your program works use $ \alpha = (\alpha_W = 1, \alpha_R = 5 \alpha_B = 2)$ and $n = 100$.
+Write an R function that takes arguments as $(\alpha_W, \alpha_R, \alpha_B), n$, and returns a sample from this urn model using the random variable generation methods that we learned in class and any extrensions you can devise. As an example to illustrate that your program works use $\alpha = (\alpha_W = 1, \alpha_R = 5 \alpha_B = 2)$ and $n = 100$.
 
 ### Solution A
 ```{r}
