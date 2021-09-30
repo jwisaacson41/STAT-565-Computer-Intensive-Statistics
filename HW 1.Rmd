@@ -10,6 +10,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
 ```
 
 # Part I Theory
@@ -20,28 +21,57 @@ Let $X$ follow a binomial distribution with number of trials $n = 10$ and probab
 
 ### Solution
 
-1. Simulate $u_i \sim U(0,1)$ $n$ times.
-2. Compare each uniform random variable draw against $\theta$.
-
-  - If $u_i\leq\theta$ then $y_i=1$
-  - Else $y_i=0$
+The pmf and cdf of $X$ can be written as follows
 
 $$
-y_i=
+\begin{equation}
+f_X(x) = \binom{n}{x}\theta^x(1-\theta)^{(n-x)} \\
+\end{equation}
+
+$$
+
+$$
+\begin{equation}
+F_X(x) =\sum_{\substack i=0 \\
+               \{i|0 \leq i \leq 10 \}}^{c}\binom{n}{x_i}\theta^{x_i}(1-\theta)^{(n-x_i)}
+\end{equation}
+$$
+
+Because the pmf contains only discrete values, we know that for each possible value in the range $0\leq x \leq 10$ the following table can be generated.
+
+```{r, echo=FALSE}
+prob1<-data.frame(x = 0:10)
+prob1$Fx<-round(pbinom(prob1$x, 10, 0.3),5)
+prob1 %>%
+  kable(col.names = c("x", "F(x)")) %>%
+  kable_styling(full_width = F)
+```
+Using this table, we can build an algorithm to simulate $f_X(x)$
+
+1. Simulate $u\sim U(0,1)$
+2. Using the look up table generated above from the cdf of $f_X(x)$, we can build case statements for $y$.
+
+$$
+y=
 \begin{cases}
-1 & u_i\leq\theta \\
-0 & u_i>\theta
+0 & u \leq 0.02825 \\
+1 & u \leq 0.14931 \\
+2 & u \leq 0.38278 \\
+3 & u \leq 0.64961 \\
+4 & u \leq 0.84973 \\
+5 & u \leq 0.95265 \\
+6 & u \leq 0.98941 \\
+7 & u \leq 0.99841 \\
+8 & u \leq 0.99986 \\
+9 & u \leq 0.99999 \\
+10 & u = 1
 \end{cases}
 $$
-3. Calculate $y^*=\sum_{i=1}^{10}y_i$
-4. Accept all $y^*$ as from $f(x)$. Discard all $u_i$ and return to step 1.
+3. Accept all $y$ as from $f_X(x)$ and return to 1.
 
-``` {r }
-u<-runif(10); u
-theta<-0.3
-y<-ifelse(u<=theta, 1, 0); y
-y.star<-sum(y); y.star
-```
+
+
+
 
 ## Problem 2
 ### Question
@@ -62,24 +92,152 @@ Algorithm 2
 Assess whether Algorithm 1 and Algorithm 2 produce samples from the target distribution $f_X(x)$, supporting your answer clearly with a mathematical argument for each case.
 
 ### Solution
-Both algorithms will produce samples from the target distribution. The difference is that algorithm 1 is less efficient than algorithm 2.
 
-In algorithm 1, $u$ is a random variable that spans the entire set of the pdf $f_X(x)$. It's corresponding density has a range of $[0,2]$. Using this range as the simulation for $y*$, we can simulate random points anywhere in the box of $x\in[0,1$ and $y\in[0,2]$. Again the criterion is that a threshold must identify the maximum possible density for each corresponding point. The maximum value is identified with the pdf but substituting in the point(s) from the random variable $u$.
+Because $y^*$ and $u^*$ are distributed uniformly, under the first algorithm the pdfs for $y$ can be written as
 
-Algorithm 2 uses the inverse CDF transformation of the pdf to efficiently simulate $f(x)$. Geometrically instead of drawing a rectangular box around the pdf (like in algorithm 1), algorithm 2 transforms the box into a different shape---a triangle---and reduces the need to reject any possible values because they already fall within $f(x)$.
+$$
+\begin{aligned}
+f_Y(y) &= \frac{1}{b-a} \\
+       &= \frac{1}{2-0} \\
+       &= \frac{1}{2}
+\end{aligned}
+$$
 
-Because the pdf is simple, we can inverse the pdf as shown below.
+$$
+\begin{aligned}
+f_U(u) &= \frac{1}{b-a} \\
+       &= \frac{1}{1-0} \\
+       &= 1
+\end{aligned}
+$$
 
-$$f(x)=y=2x \rightarrow f^{-1}(x)=x=\frac{y}{2}$$
+With the pdfs of $y^*$ and $u^*$ known, we can prove that the sampling these two points comes from $f_X(x)$ by showing that $F_U(c)$=$F_X(u)$ under the condition that $y^*\leq f_X(u^*)$.
 
-With the inverse pdf we can substitute $y$ for $w^*$ along the domain $[w^*,1]$.
+$$
+\begin{aligned}
+F_U(c) &= P\bigl(U\leq c~|~Y\leq f_X(u)\bigr) \\
+       &= \frac{P\bigl(U\leq c~,~Y\leq f_X(u)\bigr)}{P\bigl(Y \leq f_X(u)\bigr)} \\
+       &=\frac{\int_{0}^{c}\int_{0}^{f_X(u)}f_U(u)\cdot f_Y(y)~dy~du}
+              {\int_{0}^{1}\int_{0}^{f_X(u)}f_U(u)\cdot f_Y(y)~dy~du} \\
+       &=\frac{\int_{0}^{c}\int_{0}^{f_X(u)}1\cdot \frac{1}{2}~dy~du}
+              {\int_{0}^{1}\int_{0}^{f_X(u)}1\cdot \frac{1}{2}~dy~du} \\
+       &=\frac{\int_{0}^{c}\int_{0}^{f_X(u)}~dy~du}
+              {\int_{0}^{1}\int_{0}^{f_X(u)}~dy~du}\\
+       &=\frac{\int_{0}^{c}f_X(u)~du}
+              {\int_{0}^{1}f_X(u)~du}\\
+       &=\frac{\int_{0}^{c}f_X(u)~du}
+              {1}\\
+       &=F_X(c)
+\end{aligned}
+$$
+Under algorithm 2, the pdf of $f_X(y)$ can be written as
+
+$$
+\text{Insert math proof of algorithm 2}
+$$
+```{r, echo = F}
+# Holding place for previous work
+# Both algorithms will produce samples from the target distribution. The difference is that algorithm 1 is less efficient than algorithm 2.
+# 
+# In algorithm 1, $u$ is a random variable that spans the entire set of the pdf $f_X(x)$. It's corresponding density has a range of $[0,2]$. Using this range as the simulation for $y*$, we can simulate random points anywhere in the box of $x\in[0,1$ and $y\in[0,2]$. Again the criterion is that a threshold must identify the maximum possible density for each corresponding point. The maximum value is identified with the pdf but substituting in the point(s) from the random variable $u$.
+# 
+# Algorithm 2 uses the inverse CDF transformation of the pdf to efficiently simulate $f(x)$. Geometrically instead of drawing a rectangular box around the pdf (like in algorithm 1), algorithm 2 transforms the box into a different shape---a triangle---and reduces the need to reject any possible values because they already fall within $f(x)$.
+# 
+# Because the pdf is simple, we can inverse the pdf as shown below.
+# 
+# $$f(x)=y=2x \rightarrow f^{-1}(x)=x=\frac{y}{2}$$
+# 
+# With the inverse pdf we can substitute $y$ for $w^*$ along the domain $[w^*,1]$.
+```
+
+
+
 
 
 ## Problem 3
 ### Question
-In general, we want to maximize the acceptance probability when sampling a given probability distribution using the rejection method. However, as we will later see in Markov chain Monte Carlo methods, when the idea of rejection is used in conjunction with complex computational algorithms, we may want to fix the probability of acceptance to optimize other aspects of an algorithm. Assume we want to sample the target random variable $X\sim Unif(-2,2)$ using a proposal random variable $Y \sim Unif(0, b); b > 0;$ and the symmetry of the uniform distribution. Find b so that the probability of acceptance is 0:4.
+In general, we want to maximize the acceptance probability when sampling a given probability distribution using the rejection method. However, as we will later see in Markov chain Monte Carlo methods, when the idea of rejection is used in conjunction with complex computational algorithms, we may want to fix the probability of acceptance to optimize other aspects of an algorithm. Assume we want to sample the target random variable $X\sim Unif(-2,2)$ using a proposal random variable $Y \sim Unif(0, b); b > 0;$ and the symmetry of the uniform distribution. Find b so that the probability of acceptance is $0.4$.
 
 ### Solution
+Because we both the target distribution ($f_X(x)$) and the proposal distribution ($g_Y(y)$) are uniformly distributed we can calculate their individual pdfs
+
+$$
+f_X(x)=\frac{1}{b-a}=\frac{1}{2-(-2)}=\frac{1}{4}
+$$
+
+$$
+g_Y(y)=\frac{1}{b-a}=\frac{1}{b-0}=\frac{1}{b}
+$$
+
+We also define the probability of acceptance
+
+$$
+P(Acceptance)=P\bigl(X \leq \frac{f_X(x)}{c~g_Y(x)}\bigr)
+$$
+Where $c$ is defined as
+
+$$
+c\geq \underbrace{\sup}_w\Big(\frac{f_X(w)}{g_Y(w)}\Big)
+$$
+First, we begin by using the probability of acceptance and set up a condition for c.
+
+$$
+\begin{aligned}
+P(Acceptance) = 0.4 &= P\bigl(X \leq \frac{f_X(x)}{c~g_Y(x)}\bigr) \\
+    &= P\bigl(X\leq\frac{1/4}{c(1/b)}\bigr)\\
+    0.4 &=\frac{1/4}{c(1/b)}~~~~~\text{because }P(Z\leq a)=a~~\text{when }Z\sim Uniform \\
+    0.4 &= \frac{b}{4c} \\
+    \Rightarrow c&=\frac{8}{5b}
+\end{aligned}
+$$
+
+We can build a system of equations and use substitution to solve for $b$ by using the eqution.
+
+$$
+\begin{aligned}
+c &\geq \underbrace{\sup}_w\Big(\frac{f_X(w)}{g_Y(w)}\Big) \\
+\frac{8}{5b} &\geq \underbrace{\sup}_w\Big(\frac{1/4}{1/b}\Big) \\
+\frac{8}{5b} &\geq \underbrace{\sup}_w\Big(\frac{b}{4}\Big) \\
+\frac{8}{5b} &\geq \Big(\frac{b}{4}\Big) \\
+\sqrt{\frac{32}{5}} &\geq b\\
+2.529822 &\geq b
+\end{aligned}
+$$
+
+If we return back to our equation for $c$ we have
+
+$$
+\begin{aligned}
+c &=\frac{8}{5b} \\
+&= \frac{8}{5(\sqrt{32/5})} \\
+&\approx 0.6325
+\end{aligned}$$
+
+Now with values for $b$ (assumed) and $c$ we can verify we satisfy the condition that $P(Acceptance)=0.4)$. First, we need to find a value $c$ the proposal distribution $g_Y(y)$ covers the range of the target distribution $f_X(x)$
+
+Using the information provided to us we know that
+
+$$
+\begin{aligned}
+P(Acceptance)= 0.4 &=P \bigl(Y \leq \frac{f_X(x)}{c~g_Y(x)}\bigr)  \\
+P\bigl( Y \leq \frac{1/4}{c(1/b)}\bigr)
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+c &\geq \underbrace{\sup}_w\Big(\frac{f_X(w)}{g_Y(w)}\Big) \\
+c &\geq \underbrace{\sup}_w\Big(\frac{1/2}{1/b}\Big)
+\end{aligned}
+$$
+
+
+
+1. Simulate $x\sim U(-2,2)$
+2. Simulate $y \sim U(0,b)$
+3. If $Y \leq \frac{f_X(x)}{cg(x)}$ where $c \geq \sup\Bigl\{\frac{f_X(w)}{g_Y(w)}\Bigr\}$
+
+
 
 
 
@@ -94,15 +252,102 @@ Write an algorithm to simulate $f_X(x)$ using a **rejection method**.
 
 ### Solution A
 
+We can use the following rejection method with an exponential proposal distribution.
+
+1. Simulate $y\sim g_Y(y)$
+2. Simulate $u \sim U(0,1)$
+3. If $U \leq \frac{f(y)}{c~g(y)}$ where $c \geq \underbrace{\sup}_w \bigl\{ \frac{f(w)}{g(w)} \bigr\}$, accept $y$ as from $f_X(x)$.
+4. Else discard $y$ and return to step 1.
+
+
 ### Question B
 For your choice of proposal distribution, find the optimal value of parameter (of the proposal distribution) which maximizes the probability of acceptance.
 
 ### Solution B
+We define the proposal function as
+
+$$
+g_Y(y)=\lambda e^{-\lambda(y-4)}
+$$
+We set up our original as in step 3 of our algorithm.
+
+$$
+h(w) =\frac{f_X(w)}{g_Y(w)}
+= \frac{ke^{-\frac{w^2}{2}}}{\lambda e^{-\lambda(w-4)}}
+= \frac{k}{\lambda}e^{-w^2/2+\lambda w-4\lambda}
+$$
+Now we maximize the function $h(w)$. When $w=\lambda$, the function is maximized on the range $\lambda \geq 4 $.
+
+$$
+\begin{aligned}
+0 &= \frac{dh(w)}{dw} \\
+ &= \frac{k}{\lambda}e^{-w^2/2+\lambda w-4\lambda}(-w+\lambda)
+\end{aligned}
+$$
+$$
+\begin{aligned}
+c &=h(\lambda) \\
+&= \frac{k}{\lambda}e^{-\lambda^2/2+\lambda^2-4\lambda} \\
+&= \frac{k}{\lambda}e^{\lambda^2/2-4\lambda}
+\end{aligned}
+$$
+Now that we have a function for $c$ defined in terms of $\lambda$ we can return to our probability of acceptance and optimize it including the function $c(\lambda)$.
+$$
+\begin{aligned}
+0&=\frac{d(c)}{d(\lambda)} \\
+ &= -\frac{k}{\lambda}e^{\lambda^2/2-4\lambda}+\frac{k}{\lambda}e^{\lambda^2/2-4\lambda}(\lambda-4) \\
+  &= \frac{k}{\lambda}e^{\lambda^2/2-4\lambda}(-1+\lambda-4\lambda)
+\end{aligned}
+$$
+With some factoring we can show that
+
+$$
+\begin{aligned}
+(\lambda^2-4\lambda-1) &=0 \\
+(\lambda-2)^2-5 &=0\\
+\lambda=2\pm\sqrt{5}
+\end{aligned}
+$$
+Because, $\lambda$ must exist on the range $\lambda \geq 4$, the only acceptable value for $c$ is when $\lambda=2+\sqrt{5}$
 
 ## Problem 5
 ### Question
 Show whether it is possible to use the rejection algorithm to simulate from the target distribution of a random variable whose natural logarithm is normally distributed, using a normal distribution as a proposal distribution.
+
 ### Solution
+We know that the pdfs of the standard log-normal distribution $f_X(w)$ and standard normal distrubtion $g_Y(w)$ can be written as
+
+$$
+\begin{aligned}
+f_x(w) &=\frac{1}{\sqrt{2\pi}}e^{-w^2/2} \\
+g_x(w) &= \frac{1}{w\sqrt{2\pi}}e^{-ln(w)^2/2}
+\end{aligned}
+$$
+For the rejection algorithm to function, we must meet the condition that
+
+$$
+\begin{aligned}
+c &\geq \underbrace{\sup}_w \Biggl\{\frac{f(w)}{g(w)}\Biggr\} \\
+  &\geq \underbrace{\sup}_w \Biggl\{\frac{\frac{1}{\sqrt{2\pi}}e^{-w^2/2}}{\frac{1}{w\sqrt{2\pi}}e^{-ln(w)^2/2}}\Biggr\} \\
+  &\geq \underbrace{\sup}_w\{\frac{e^{-\frac{1}{2}(\ln(w^2)-w^2)}}{w}\}
+\end{aligned}
+$$
+We want to maximize this function so we will $\frac{dx}{dw}=0$, because we have an exponential function in the numerator and a linear function in the denominator we know this function will not have a maximum as it goes to infinity.
+
+So we will use L’Hopsital’s rule $log_{w\rightarrow c}\frac{f(w)}{g(w)}=log_{w\rightarrow c}\frac{f'(w)}{g'(w)}$.
+
+$$
+\begin{aligned}
+0& =\frac{dx}{dw} \\
+&=\frac{e^{-\frac{1}{2}(\ln(w^2)-w^2)}}{w} \\
+&=\frac{e^{-\frac{1}{2}(ln(w^2)-w^2)}(-\frac{1}{2}(\frac{1}{w}+2w))}{1} \\
+0 &=1+2w^2\\
+\sqrt{-\frac{1}{2}} &= w \\
+&\text{w does not exist}
+\end{aligned}
+$$
+Because there is no supremum value for $c$ therefore the the proposal distribution (standard normal) does not work for the target distribution (log-normal distribution).
+
 
 # Part II Practice
 
@@ -200,6 +445,9 @@ Write an R function that takes arguments as $(\alpha_W, \alpha_R, \alpha_B), n$,
 
 ### Solution A
 ```{r}
+dir.sim<-function(){
+  
+}
 
 ```
 
@@ -207,4 +455,5 @@ Write an R function that takes arguments as $(\alpha_W, \alpha_R, \alpha_B), n$,
 Generalize your function to a model with $k$ types of balls, where the input is
 a vector $\alpha = (\alpha_1, \alpha_2,..., \alpha_k)$ (and $n$), where $\alpha_i \in \mathbb{R}$; which means that $\alpha_i > 0$ does not need to be integer.
 
-### Solution B
+### Solution 
+

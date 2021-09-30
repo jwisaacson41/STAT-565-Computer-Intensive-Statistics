@@ -209,29 +209,52 @@ summary {
 </div>
 <div id="solution" class="section level3">
 <h3>Solution</h3>
-<ol style="list-style-type: decimal">
-<li>Simulate <span class="math inline">\(u_i \sim U(0,1)\)</span> <span class="math inline">\(n\)</span> times.</li>
-<li>Compare each uniform random variable draw against <span class="math inline">\(\theta\)</span>.</li>
-</ol>
-<ul>
-<li>If <span class="math inline">\(u_i\leq\theta\)</span> then <span class="math inline">\(y_i=1\)</span></li>
-<li>Else <span class="math inline">\(y_i=0\)</span></li>
-</ul>
+<p>The pmf and cdf of <span class="math inline">\(X\)</span> can be written as follows</p>
+<p>$$ <span class="math display">\[\begin{equation}
+f_X(x) = \binom{n}{x}\theta^x(1-\theta)^{(n-x)} \\
+\end{equation}\]</span></p>
 <p><span class="math display">\[
-y_i=
+\]</span> <span class="math display">\[\begin{equation}
+F_X(x) =\sum_{\substack i=0 \\
+               \{i|0 \leq i \leq 10 \}}^{c}\binom{n}{x_i}\theta^{x_i}(1-\theta)^{(n-x_i)}
+\end{equation}\]</span> $$</p>
+<p>Because the pmf contains only discrete values, we know that for each possible value in the range <span class="math inline">\(0\leq x \leq 10\)</span> the following table can be generated.</p>
+<pre class="r"><code>prob1&lt;-data.frame(x = 0:10)
+prob1$Fx&lt;-round(pbinom(prob1$x, 10, 0.3),5)
+prob1</code></pre>
+<pre><code>##     x      Fx
+## 1   0 0.02825
+## 2   1 0.14931
+## 3   2 0.38278
+## 4   3 0.64961
+## 5   4 0.84973
+## 6   5 0.95265
+## 7   6 0.98941
+## 8   7 0.99841
+## 9   8 0.99986
+## 10  9 0.99999
+## 11 10 1.00000</code></pre>
+<p>Using this table, we can build an algorithm to simulate <span class="math inline">\(f_X(x)\)</span></p>
+<ol style="list-style-type: decimal">
+<li>Simulate <span class="math inline">\(u\sim U(0,1)\)</span></li>
+<li>Using the look up table generated above from the cdf of <span class="math inline">\(f_X(x)\)</span>, we can build case statements for <span class="math inline">\(y\)</span>.</li>
+</ol>
+<p><span class="math display">\[
+y=
 \begin{cases}
-1 &amp; u_i\leq\theta \\
-0 &amp; u_i&gt;\theta
+0 &amp; u \leq 0.02825 \\
+1 &amp; u \leq 0.14931 \\
+2 &amp; u \leq 0.38278 \\
+3 &amp; u \leq 0.64961 \\
+4 &amp; u \leq 0.84973 \\
+5 &amp; u \leq 0.95265 \\
+6 &amp; u \leq 0.98941 \\
+7 &amp; u \leq 0.99841 \\
+8 &amp; u \leq 0.99986 \\
+9 &amp; u \leq 0.99999 \\
+10 &amp; u = 1
 \end{cases}
-\]</span> 3. Calculate <span class="math inline">\(y^*=\sum_{i=1}^{10}y_i\)</span> 4. Accept all <span class="math inline">\(y^*\)</span> as from <span class="math inline">\(f(x)\)</span>. Discard all <span class="math inline">\(u_i\)</span> and return to step 1.</p>
-<pre class="r"><code>u&lt;-runif(10); u</code></pre>
-<pre><code>##  [1] 0.22391108 0.37644997 0.52872025 0.96723141 0.15405485 0.01877454
-##  [7] 0.74083995 0.45243194 0.08051837 0.38955054</code></pre>
-<pre class="r"><code>theta&lt;-0.3
-y&lt;-ifelse(u&lt;=theta, 1, 0); y</code></pre>
-<pre><code>##  [1] 1 0 0 0 1 1 0 0 1 0</code></pre>
-<pre class="r"><code>y.star&lt;-sum(y); y.star</code></pre>
-<pre><code>## [1] 4</code></pre>
+\]</span> 3. Accept all <span class="math inline">\(y\)</span> as from <span class="math inline">\(f_X(x)\)</span> and return to 1</p>
 </div>
 </div>
 <div id="problem-2" class="section level2">
@@ -255,22 +278,113 @@ y&lt;-ifelse(u&lt;=theta, 1, 0); y</code></pre>
 </div>
 <div id="solution-1" class="section level3">
 <h3>Solution</h3>
-<p>Both algorithms will produce samples from the target distribution. The difference is that algorithm 1 is less efficient than algorithm 2.</p>
-<p>In algorithm 1, <span class="math inline">\(u\)</span> is a random variable that spans the entire set of the pdf <span class="math inline">\(f_X(x)\)</span>. It’s corresponding density has a range of <span class="math inline">\([0,2]\)</span>. Using this range as the simulation for <span class="math inline">\(y*\)</span>, we can simulate random points anywhere in the box of <span class="math inline">\(x\in[0,1\)</span> and <span class="math inline">\(y\in[0,2]\)</span>. Again the criterion is that a threshold must identify the maximum possible density for each corresponding point. The maximum value is identified with the pdf but substituting in the point(s) from the random variable <span class="math inline">\(u\)</span>.</p>
-<p>Algorithm 2 uses the inverse CDF transformation of the pdf to efficiently simulate <span class="math inline">\(f(x)\)</span>. Geometrically instead of drawing a rectangular box around the pdf (like in algorithm 1), algorithm 2 transforms the box into a different shape—a triangle—and reduces the need to reject any possible values because they already fall within <span class="math inline">\(f(x)\)</span>.</p>
-<p>Because the pdf is simple, we can inverse the pdf as shown below.</p>
-<p><span class="math display">\[f(x)=y=2x \rightarrow f^{-1}(x)=x=\frac{y}{2}\]</span></p>
-<p>With the inverse pdf we can substitute <span class="math inline">\(y\)</span> for <span class="math inline">\(w^*\)</span> along the domain <span class="math inline">\([w^*,1]\)</span>.</p>
+<p>Because <span class="math inline">\(y^*\)</span> and <span class="math inline">\(u^*\)</span> are distributed uniformly, under the first algorithm the pdfs for <span class="math inline">\(y\)</span> can be written as</p>
+<p><span class="math display">\[
+\begin{aligned}
+f_Y(y) &amp;= \frac{1}{b-a} \\
+       &amp;= \frac{1}{2-0} \\
+       &amp;= \frac{1}{2}
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+f_U(u) &amp;= \frac{1}{b-a} \\
+       &amp;= \frac{1}{1-0} \\
+       &amp;= 1
+\end{aligned}
+\]</span></p>
+<p>With the pdfs of <span class="math inline">\(y^*\)</span> and <span class="math inline">\(u^*\)</span> known, we can prove that the sampling these two points comes from <span class="math inline">\(f_X(x)\)</span> by showing that <span class="math inline">\(F_U(c)\)</span>=<span class="math inline">\(F_X(u)\)</span> under the condition that <span class="math inline">\(y^*\leq f_X(u^*)\)</span>.</p>
+<p><span class="math display">\[
+\begin{aligned}
+F_U(c) &amp;= P\bigl(U\leq c~|~Y\leq f_X(u)\bigr) \\
+       &amp;= \frac{P\bigl(U\leq c~,~Y\leq f_X(u)\bigr)}{P\bigl(Y \leq f_X(u)\bigr)} \\
+       &amp;=\frac{\int_{0}^{c}\int_{0}^{f_X(u)}f_U(u)\cdot f_Y(y)~dy~du}
+              {\int_{0}^{1}\int_{0}^{f_X(u)}f_U(u)\cdot f_Y(y)~dy~du} \\
+       &amp;=\frac{\int_{0}^{c}\int_{0}^{f_X(u)}1\cdot \frac{1}{2}~dy~du}
+              {\int_{0}^{1}\int_{0}^{f_X(u)}1\cdot \frac{1}{2}~dy~du} \\
+       &amp;=\frac{\int_{0}^{c}\int_{0}^{f_X(u)}~dy~du}
+              {\int_{0}^{1}\int_{0}^{f_X(u)}~dy~du}\\
+       &amp;=\frac{\int_{0}^{c}f_X(u)~du}
+              {\int_{0}^{1}f_X(u)~du}\\
+       &amp;=\frac{\int_{0}^{c}f_X(u)~du}
+              {1}\\
+       &amp;=F_X(c)
+\end{aligned}
+\]</span> Under algorithm 2, the pdf of <span class="math inline">\(f_X(y)\)</span> can be written as</p>
+<p><span class="math display">\[
+\text{Insert math proof of algorithm 2}
+\]</span></p>
 </div>
 </div>
 <div id="problem-3" class="section level2">
 <h2>Problem 3</h2>
 <div id="question-2" class="section level3">
 <h3>Question</h3>
-<p>In general, we want to maximize the acceptance probability when sampling a given probability distribution using the rejection method. However, as we will later see in Markov chain Monte Carlo methods, when the idea of rejection is used in conjunction with complex computational algorithms, we may want to fix the probability of acceptance to optimize other aspects of an algorithm. Assume we want to sample the target random variable <span class="math inline">\(X\sim Unif(-2,2)\)</span> using a proposal random variable <span class="math inline">\(Y \sim Unif(0, b); b &gt; 0;\)</span> and the symmetry of the uniform distribution. Find b so that the probability of acceptance is 0:4.</p>
+<p>In general, we want to maximize the acceptance probability when sampling a given probability distribution using the rejection method. However, as we will later see in Markov chain Monte Carlo methods, when the idea of rejection is used in conjunction with complex computational algorithms, we may want to fix the probability of acceptance to optimize other aspects of an algorithm. Assume we want to sample the target random variable <span class="math inline">\(X\sim Unif(-2,2)\)</span> using a proposal random variable <span class="math inline">\(Y \sim Unif(0, b); b &gt; 0;\)</span> and the symmetry of the uniform distribution. Find b so that the probability of acceptance is <span class="math inline">\(0.4\)</span>.</p>
 </div>
 <div id="solution-2" class="section level3">
 <h3>Solution</h3>
+<p>Because we both the target distribution (<span class="math inline">\(f_X(x)\)</span>) and the proposal distribution (<span class="math inline">\(g_Y(y)\)</span>) are uniformly distributed we can calculate their individual pdfs</p>
+<p><span class="math display">\[
+f_X(x)=\frac{1}{b-a}=\frac{1}{2-(-2)}=\frac{1}{4}
+\]</span></p>
+<p><span class="math display">\[
+g_Y(y)=\frac{1}{b-a}=\frac{1}{b-0}=\frac{1}{b}
+\]</span></p>
+<p>We also define the probability of acceptance</p>
+<p><span class="math display">\[
+P(Acceptance)=P\bigl(X \leq \frac{f_X(x)}{c~g_Y(x)}\bigr)
+\]</span> Where <span class="math inline">\(c\)</span> is defined as</p>
+<p><span class="math display">\[
+c\geq \underbrace{\sup}_w\Big(\frac{f_X(w)}{g_Y(w)}\Big)
+\]</span> First, we begin by using the probability of acceptance and set up a condition for c.</p>
+<p><span class="math display">\[
+\begin{aligned}
+P(Acceptance) = 0.4 &amp;= P\bigl(X \leq \frac{f_X(x)}{c~g_Y(x)}\bigr) \\
+    &amp;= P\bigl(X\leq\frac{1/4}{c(1/b)}\bigr)\\
+    0.4 &amp;=\frac{1/4}{c(1/b)}~~~~~\text{because }P(Z\leq a)=a~~\text{when }Z\sim Uniform \\
+    0.4 &amp;= \frac{b}{4c} \\
+    \Rightarrow c&amp;=\frac{8}{5b}
+\end{aligned}
+\]</span></p>
+<p>We can build a system of equations and use substitution to solve for <span class="math inline">\(b\)</span> by using the eqution.</p>
+<p><span class="math display">\[
+\begin{aligned}
+c &amp;\geq \underbrace{\sup}_w\Big(\frac{f_X(w)}{g_Y(w)}\Big) \\
+\frac{8}{5b} &amp;\geq \underbrace{\sup}_w\Big(\frac{1/4}{1/b}\Big) \\
+\frac{8}{5b} &amp;\geq \underbrace{\sup}_w\Big(\frac{b}{4}\Big) \\
+\frac{8}{5b} &amp;\geq \Big(\frac{b}{4}\Big) \\
+\sqrt{\frac{32}{5}} &amp;\geq b\\
+2.529822 &amp;\geq b
+\end{aligned}
+\]</span></p>
+<p>If we return back to our equation for <span class="math inline">\(c\)</span> we have</p>
+<p><span class="math display">\[
+\begin{aligned}
+c &amp;=\frac{8}{5b} \\
+&amp;= \frac{8}{5(\sqrt{32/5})} \\
+&amp;\approx 0.6325
+\end{aligned}\]</span></p>
+<p>Now with values for <span class="math inline">\(b\)</span> (assumed) and <span class="math inline">\(c\)</span> we can verify we satisfy the condition that <span class="math inline">\(P(Acceptance)=0.4)\)</span></p>
+<p>First, we need to find a value <span class="math inline">\(c\)</span> the proposal distribution <span class="math inline">\(g_Y(y)\)</span> covers the range of the target distribution <span class="math inline">\(f_X(x)\)</span></p>
+<p>Using the information provided to us we know that</p>
+<p><span class="math display">\[
+\begin{aligned}
+P(Acceptance)= 0.4 &amp;=P \bigl(Y \leq \frac{f_X(x)}{c~g_Y(x)}\bigr)  \\
+P\bigl( Y \leq \frac{1/4}{c(1/b)}\bigr)
+\end{aligned}
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+c &amp;\geq \underbrace{\sup}_w\Big(\frac{f_X(w)}{g_Y(w)}\Big) \\
+c &amp;\geq \underbrace{\sup}_w\Big(\frac{1/2}{1/b}\Big)
+\end{aligned}
+\]</span></p>
+<ol style="list-style-type: decimal">
+<li>Simulate <span class="math inline">\(x\sim U(-2,2)\)</span></li>
+<li>Simulate <span class="math inline">\(y \sim U(0,b)\)</span></li>
+<li>If <span class="math inline">\(Y \leq \frac{f_X(x)}{cg(x)}\)</span> where <span class="math inline">\(c \geq \sup\Bigl\{\frac{f_X(w)}{g_Y(w)}\Bigr\}\)</span></li>
+</ol>
 </div>
 </div>
 <div id="problem-4" class="section level2">
@@ -283,6 +397,13 @@ y&lt;-ifelse(u&lt;=theta, 1, 0); y</code></pre>
 </div>
 <div id="solution-a" class="section level3">
 <h3>Solution A</h3>
+<p>We can use the following rejection method with an exponential proposal distribution.</p>
+<ol style="list-style-type: decimal">
+<li>Simulate <span class="math inline">\(y\sim g_Y(y)\)</span></li>
+<li>Simulate <span class="math inline">\(u \sim U(0,1)\)</span></li>
+<li>If <span class="math inline">\(U \leq \frac{f(y)}{c~g(y)}\)</span> where <span class="math inline">\(c \geq \underbrace{\sup}_w \bigl\{ \frac{f(w)}{g(w)} \bigr\}\)</span>, accept <span class="math inline">\(y\)</span> as from <span class="math inline">\(f_X(x)\)</span>.</li>
+<li>Else discard <span class="math inline">\(y\)</span> and return to step 1.</li>
+</ol>
 </div>
 <div id="question-b" class="section level3">
 <h3>Question B</h3>
@@ -290,13 +411,75 @@ y&lt;-ifelse(u&lt;=theta, 1, 0); y</code></pre>
 </div>
 <div id="solution-b" class="section level3">
 <h3>Solution B</h3>
+<p>We define the proposal function as</p>
+<p><span class="math display">\[
+g_Y(y)=\lambda e^{-\lambda(y-4)}
+\]</span> We set up our original as in step 3 of our algorithm.</p>
+<p><span class="math display">\[
+h(w) =\frac{f_X(w)}{g_Y(w)}
+= \frac{ke^{-\frac{w^2}{2}}}{\lambda e^{-\lambda(w-4)}}
+= \frac{k}{\lambda}e^{-w^2/2+\lambda w-4\lambda}
+\]</span> Now we maximize the function <span class="math inline">\(h(w)\)</span>. When <span class="math inline">\(w=\lambda\)</span>, the function is maximized on the range $ $.</p>
+<p><span class="math display">\[
+\begin{aligned}
+0 &amp;= \frac{dh(w)}{dw} \\
+ &amp;= \frac{k}{\lambda}e^{-w^2/2+\lambda w-4\lambda}(-w+\lambda)
+\end{aligned}
+\]</span> <span class="math display">\[
+\begin{aligned}
+c &amp;=h(\lambda) \\
+&amp;= \frac{k}{\lambda}e^{-\lambda^2/2+\lambda^2-4\lambda} \\
+&amp;= \frac{k}{\lambda}e^{\lambda^2/2-4\lambda}
+\end{aligned}
+\]</span> Now that we have a function for <span class="math inline">\(c\)</span> defined in terms of <span class="math inline">\(\lambda\)</span> we can return to our probability of acceptance and optimize it including the function <span class="math inline">\(c(\lambda)\)</span>. <span class="math display">\[
+\begin{aligned}
+0&amp;=\frac{d(c)}{d(\lambda)} \\
+ &amp;= -\frac{k}{\lambda}e^{\lambda^2/2-4\lambda}+\frac{k}{\lambda}e^{\lambda^2/2-4\lambda}(\lambda-4) \\
+  &amp;= \frac{k}{\lambda}e^{\lambda^2/2-4\lambda}(-1+\lambda-4\lambda)
+\end{aligned}
+\]</span> With some factoring we can show that</p>
+<p><span class="math display">\[
+\begin{aligned}
+(\lambda^2-4\lambda-1) &amp;=0 \\
+(\lambda-2)^2-5 &amp;=0\\
+\lambda=2\pm\sqrt{5}
+\end{aligned}
+\]</span> Because, <span class="math inline">\(\lambda\)</span> must exist on the range <span class="math inline">\(\lambda \geq 4\)</span>, the only acceptable value for <span class="math inline">\(c\)</span> is when <span class="math inline">\(\lambda=2+\sqrt{5}\)</span></p>
 </div>
 </div>
 <div id="problem-5" class="section level2">
 <h2>Problem 5</h2>
 <div id="question-3" class="section level3">
 <h3>Question</h3>
-<p>Show whether it is possible to use the rejection algorithm to simulate from the target distribution of a random variable whose natural logarithm is normally distributed, using a normal distribution as a proposal distribution. ### Solution</p>
+<p>Show whether it is possible to use the rejection algorithm to simulate from the target distribution of a random variable whose natural logarithm is normally distributed, using a normal distribution as a proposal distribution.</p>
+</div>
+<div id="solution-3" class="section level3">
+<h3>Solution</h3>
+<p>We know that the pdfs of the standard log-normal distribution <span class="math inline">\(f_X(w)\)</span> and standard normal distrubtion <span class="math inline">\(g_Y(w)\)</span> can be written as</p>
+<p><span class="math display">\[
+\begin{aligned}
+f_x(w) &amp;=\frac{1}{\sqrt{2\pi}}e^{-w^2/2} \\
+g_x(w) &amp;= \frac{1}{w\sqrt{2\pi}}e^{-ln(w)^2/2}
+\end{aligned}
+\]</span> For the rejection algorithm to function, we must meet the condition that</p>
+<p><span class="math display">\[
+\begin{aligned}
+c &amp;\geq \underbrace{\sup}_w \Biggl\{\frac{f(w)}{g(w)}\Biggr\} \\
+  &amp;\geq \underbrace{\sup}_w \Biggl\{\frac{\frac{1}{\sqrt{2\pi}}e^{-w^2/2}}{\frac{1}{w\sqrt{2\pi}}e^{-ln(w)^2/2}}\Biggr\} \\
+  &amp;\geq \underbrace{\sup}_w\{\frac{e^{-\frac{1}{2}(\ln(w^2)-w^2)}}{w}\}
+\end{aligned}
+\]</span> We want to maximize this function so we will <span class="math inline">\(\frac{dx}{dw}=0\)</span>, because we have an exponential function in the numerator and a linear function in the denominator we know this function will not have a maximum as it goes to infinity.</p>
+<p>So we will use L’Hopsital’s rule <span class="math inline">\(log_{w\rightarrow c}\frac{f(w)}{g(w)}=log_{w\rightarrow c}\frac{f&#39;(w)}{g&#39;(w)}\)</span>.</p>
+<p><span class="math display">\[
+\begin{aligned}
+0&amp; =\frac{dx}{dw} \\
+&amp;=\frac{e^{-\frac{1}{2}(\ln(w^2)-w^2)}}{w} \\
+&amp;=\frac{e^{-\frac{1}{2}(ln(w^2)-w^2)}(-\frac{1}{2}(\frac{1}{w}+2w))}{1} \\
+0 &amp;=1+2w^2\\
+\sqrt{-\frac{1}{2}} &amp;= w \\
+&amp;\text{w does not exist}
+\end{aligned}
+\]</span> Because there is no supremum value for <span class="math inline">\(c\)</span> therefore the the proposal distribution (standard normal) does not work for the target distribution (log-normal distribution).</p>
 </div>
 </div>
 </div>
